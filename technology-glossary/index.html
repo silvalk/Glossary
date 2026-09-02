@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Technology Glossary · Lar Donato Flores</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<a href="#main" class="skip-link">Pular para o conteúdo</a>
+
+<header>
+  <div class="topbar">
+    <div class="brand">
+      <div class="icon-lar" aria-hidden="true"><img src="assets/laricon.png" alt=""></div>
+      <div class="brand-text">
+        <span class="brand-eyebrow">Lar Donato Flores</span>
+        <span class="brand-name">Technology Glossary</span>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <button id="themeToggle" class="icon-btn" type="button" aria-label="Alternar modo escuro">
+        <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+        <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8 6 18M18 6l1.8-1.8"/></svg>
+      </button>
+      <a href="admin.html" class="admin-link">Admin</a>
+    </div>
+  </div>
+
+  <section class="hero">
+    <span class="hero-kicker">tech&nbsp;term → explicação&nbsp;em&nbsp;PT</span>
+    <h1>Technology Glossary</h1>
+    <p class="lede">Um glossário para conhecer e entender palavras e conceitos da área de tecnologia.</p>
+  </section>
+
+  <div class="search-wrap">
+    <div class="search-box">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+      <input type="text" id="searchInput" placeholder="Search for a technology term..." autocomplete="off" aria-label="Search for a technology term">
+    </div>
+    <p class="result-count" id="resultCount" aria-live="polite"></p>
+  </div>
+
+  <nav class="category-filter" id="categoryFilter" aria-label="Filtrar por categoria"></nav>
+</header>
+
+<main id="main" class="glossary-section">
+  <div class="term-grid" id="termGrid"></div>
+</main>
+
+<footer class="site-footer">
+  <div class="foot-inner">
+    <div class="petal-mark" aria-hidden="true" style="transform:scale(.7)"><img src="assets/logo.svg" alt=""></div>
+    <p>Lar Donato Flores · Technology Glossary</p>
+  </div>
+</footer>
+
+<div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTerm">
+  <div class="modal-card">
+    <button class="modal-close" id="modalClose" type="button" aria-label="Fechar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+    <div class="modal-term-row">
+      <h2 class="term" id="modalTerm"></h2>
+      <button type="button" class="speak-btn" id="modalSpeakBtn" aria-label="Ouvir pronúncia"></button>
+    </div>
+    <span class="category-badge" id="modalCategoryBadge"></span>
+    <p class="explanation" id="modalExplanation"></p>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="script.js"></script>
+</body>
+</html>

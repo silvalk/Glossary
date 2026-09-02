@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin Panel · Technology Glossary</title>
+<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="admin.css">
+</head>
+<body>
+
+<header>
+  <div class="admin-topbar">
+    <a href="index.html" class="back-link">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M15 6l-6 6 6 6"/></svg>
+      Voltar ao glossário
+    </a>
+    <div class="topbar-actions">
+      <button id="themeToggle" class="icon-btn" type="button" aria-label="Alternar modo escuro">
+        <svg class="moon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z"/></svg>
+        <svg class="sun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M4.2 4.2l1.8 1.8M18 18l1.8 1.8M2 12h2.5M19.5 12H22M4.2 19.8 6 18M18 6l1.8-1.8"/></svg>
+      </button>
+      <button id="logoutBtn" class="btn btn-ghost" type="button" style="display:none;">Logout</button>
+    </div>
+  </div>
+</header>
+
+<!-- ---------- LOGIN ---------- -->
+<section class="login-wrap" id="loginScreen">
+  <div class="login-card">
+    <div class="petal-mark" aria-hidden="true"><img src="assets/logo.svg" alt=""></div>
+    <h1>Admin Panel</h1>
+    <p class="sub">Lar Donato Flores · Technology Glossary</p>
+
+    <form id="loginForm">
+      <div class="field">
+        <label for="username">Username</label>
+        <input type="text" id="username" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" autocomplete="current-password" required>
+      </div>
+      <p class="login-error" id="loginError"></p>
+      <button type="submit" class="btn btn-primary">Login</button>
+    </form>
+
+    <p class="login-hint">Demonstração: usuário <code>admin</code> · senha <code>admin123</code></p>
+  </div>
+</section>
+
+<!-- ---------- DASHBOARD ---------- -->
+<section class="admin-dashboard" id="adminDashboard">
+  <div class="dash-hero">
+    <div>
+      <h1>Technology Glossary — Admin</h1>
+      <p class="stat">Total of terms: <strong id="totalTerms">0</strong></p>
+    </div>
+    <div class="dash-actions">
+      <button class="btn btn-primary" id="addTermBtn" type="button">+ Add New Term</button>
+    </div>
+  </div>
+
+  <div class="admin-list" id="adminList"></div>
+</section>
+
+<!-- ---------- MODAL: adicionar / editar termo ---------- -->
+<div class="modal-overlay" id="formOverlay" role="dialog" aria-modal="true" aria-labelledby="formTitle">
+  <div class="modal-card form-card">
+    <button class="modal-close" id="formClose" type="button" aria-label="Fechar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M6 6l12 12M18 6 6 18"/></svg>
+    </button>
+    <h2 id="formTitle">+ Add New Term</h2>
+    <form id="termForm">
+      <input type="hidden" id="termId">
+      <div class="field mono">
+        <label for="termInput">Technology Term</label>
+        <input type="text" id="termInput" placeholder="JavaScript" required>
+      </div>
+      <div class="field">
+        <label for="categoryInput">Category</label>
+        <select id="categoryInput"></select>
+      </div>
+      <div class="field">
+        <label for="explanationInput">Explanation in Portuguese</label>
+        <textarea id="explanationInput" placeholder="Linguagem de programação utilizada para adicionar interatividade às páginas da Web." required></textarea>
+      </div>
+      <div class="form-actions">
+        <button type="button" class="btn btn-secondary" id="cancelFormBtn">Cancel</button>
+        <button type="submit" class="btn btn-primary" id="submitFormBtn">Add Term</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- ---------- MODAL: confirmar exclusão ---------- -->
+<div class="modal-overlay" id="confirmOverlay" role="dialog" aria-modal="true" aria-labelledby="confirmTitle">
+  <div class="modal-card confirm-card">
+    <p id="confirmTitle">Are you sure you want to delete this term?</p>
+    <div class="confirm-actions">
+      <button type="button" class="btn btn-secondary" id="cancelDeleteBtn">Cancel</button>
+      <button type="button" class="btn btn-danger" id="confirmDeleteBtn">Delete</button>
+    </div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script src="admin.js"></script>
+</body>
+</html>
