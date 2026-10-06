@@ -23,11 +23,13 @@
   const termForm = document.getElementById("termForm");
   const termIdInput = document.getElementById("termId");
   const termInput = document.getElementById("termInput");
+  const translationInput = document.getElementById("translationInput");
   const categoryInput = document.getElementById("categoryInput");
   const explanationInput = document.getElementById("explanationInput");
   const submitFormBtn = document.getElementById("submitFormBtn");
   const formClose = document.getElementById("formClose");
   const cancelFormBtn = document.getElementById("cancelFormBtn");
+  const formError = document.getElementById("formError");
 
   const confirmOverlay = document.getElementById("confirmOverlay");
   const cancelDeleteBtn = document.getElementById("cancelDeleteBtn");
@@ -35,7 +37,7 @@
 
   const themeToggle = document.getElementById("themeToggle");
 
-  let terms = loadTerms();
+  let terms = [];
   let pendingDeleteId = null;
 
   /* ---------- Select de categorias ---------- */
@@ -46,17 +48,24 @@
     ).join("");
   }
 
+  /* Mostra um erro de conexão/validação da API na tela de dashboard
+     (reaproveita o mesmo estilo do erro de login, ".login-error"). */
+  function showAdminError(erro) {
+    const mensagem = erro instanceof Error ? erro.message : String(erro);
+    adminList.innerHTML = `<div class="admin-empty">${escapeHTML(mensagem)}</div>`;
+  }
+
   /* ---------- Autenticação ---------- */
 
   function isLoggedIn() {
     return sessionStorage.getItem(SESSION_KEY) === "true";
   }
 
-  function showDashboard() {
+  async function showDashboard() {
     loginScreen.style.display = "none";
     adminDashboard.classList.add("active");
     logoutBtn.style.display = "inline-flex";
-    renderList();
+    await renderList();
   }
 
   function showLogin() {
@@ -65,7 +74,7 @@
     logoutBtn.style.display = "none";
   }
 
-  loginForm.addEventListener("submit", (e) => {
+  loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const user = document.getElementById("username").value.trim();
     const pass = document.getElementById("password").value;
@@ -74,7 +83,7 @@
       sessionStorage.setItem(SESSION_KEY, "true");
       loginError.textContent = "";
       loginForm.reset();
-      showDashboard();
+      await showDashboard();
     } else {
       loginError.textContent = "Usuário ou senha inválidos.";
     }
@@ -87,8 +96,15 @@
 
   /* ---------- Renderização da lista ---------- */
 
-  function renderList() {
-    terms = loadTerms();
+  async function renderList() {
+    adminList.innerHTML = `<div class="admin-empty">Carregando termos…</div>`;
+    try {
+      terms = await fetchTerms();
+    } catch (erro) {
+      showAdminError(erro);
+      return;
+    }
+
     totalTerms.textContent = terms.length;
     adminList.innerHTML = "";
 
@@ -112,6 +128,7 @@
               <button type="button" class="speak-btn admin-speak-btn" aria-label="Ouvir pronúncia de ${escapeHTML(item.term)}">${iconSVG("speaker")}</button>
               <span class="category-badge cat-${cat.id}">${escapeHTML(cat.label)}</span>
             </div>
+            <p class="term-translation">${escapeHTML(item.translation)}</p>
             <div class="explanation">${escapeHTML(item.explanation)}</div>
           </div>
           <div class="row-actions">
@@ -139,8 +156,10 @@
   function openAddForm() {
     formTitle.textContent = "+ Add New Term";
     submitFormBtn.textContent = "Add Term";
+    formError.textContent = "";
     termIdInput.value = "";
     termInput.value = "";
+    translationInput.value = "";
     categoryInput.value = CATEGORIES[0].id;
     explanationInput.value = "";
     formOverlay.classList.add("open");
@@ -153,8 +172,10 @@
     if (!item) return;
     formTitle.textContent = "Edit Term";
     submitFormBtn.textContent = "Save Changes";
+    formError.textContent = "";
     termIdInput.value = item.id;
     termInput.value = item.term;
+    translationInput.value = item.translation;
     categoryInput.value = item.category;
     explanationInput.value = item.explanation;
     formOverlay.classList.add("open");
@@ -172,30 +193,34 @@
   cancelFormBtn.addEventListener("click", closeForm);
   formOverlay.addEventListener("click", (e) => { if (e.target === formOverlay) closeForm(); });
 
-  termForm.addEventListener("submit", (e) => {
+  termForm.addEventListener("submit", async (e) => {
     e.preventDefault();
     const termValue = termInput.value.trim();
+    const translationValue = translationInput.value.trim();
     const categoryValue = categoryInput.value;
     const explanationValue = explanationInput.value.trim();
-    if (!termValue || !explanationValue) return;
+    if (!termValue || !translationValue || !explanationValue) return;
 
     const id = termIdInput.value;
+    formError.textContent = "";
+    submitFormBtn.disabled = true;
+    const textoOriginalBtn = submitFormBtn.textContent;
+    submitFormBtn.textContent = "Saving...";
 
-    if (id) {
-      // editar
-      terms = terms.map((t) =>
-        t.id === Number(id)
-          ? { ...t, term: termValue, category: categoryValue, explanation: explanationValue }
-          : t
-      );
-    } else {
-      // adicionar
-      terms.push({ id: nextId(terms), term: termValue, category: categoryValue, explanation: explanationValue });
+    try {
+      if (id) {
+        await updateTermApi(Number(id), { term: termValue, translation: translationValue, category: categoryValue, explanation: explanationValue });
+      } else {
+        await createTerm({ term: termValue, translation: translationValue, category: categoryValue, explanation: explanationValue });
+      }
+      closeForm();
+      await renderList();
+    } catch (erro) {
+      formError.textContent = erro instanceof Error ? erro.message : String(erro);
+    } finally {
+      submitFormBtn.disabled = false;
+      submitFormBtn.textContent = textoOriginalBtn;
     }
-
-    saveTerms(terms);
-    closeForm();
-    renderList();
   });
 
   /* ---------- Exclusão ---------- */
@@ -215,12 +240,19 @@
   cancelDeleteBtn.addEventListener("click", closeConfirmDelete);
   confirmOverlay.addEventListener("click", (e) => { if (e.target === confirmOverlay) closeConfirmDelete(); });
 
-  confirmDeleteBtn.addEventListener("click", () => {
+  confirmDeleteBtn.addEventListener("click", async () => {
     if (pendingDeleteId === null) return;
-    terms = terms.filter((t) => t.id !== pendingDeleteId);
-    saveTerms(terms);
-    closeConfirmDelete();
-    renderList();
+    confirmDeleteBtn.disabled = true;
+    try {
+      await deleteTermApi(pendingDeleteId);
+      closeConfirmDelete();
+      await renderList();
+    } catch (erro) {
+      closeConfirmDelete();
+      showAdminError(erro);
+    } finally {
+      confirmDeleteBtn.disabled = false;
+    }
   });
 
   document.addEventListener("keydown", (e) => {
@@ -244,11 +276,20 @@
 
   /* ---------- Inicialização ---------- */
 
-  populateCategorySelect();
+  async function init() {
+    try {
+      CATEGORIES = await fetchCategories();
+      populateCategorySelect();
+    } catch (erro) {
+      loginError.textContent = erro instanceof Error ? erro.message : String(erro);
+    }
 
-  if (isLoggedIn()) {
-    showDashboard();
-  } else {
-    showLogin();
+    if (isLoggedIn()) {
+      await showDashboard();
+    } else {
+      showLogin();
+    }
   }
+
+  init();
 })();

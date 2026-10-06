@@ -422,6 +422,15 @@ img { max-width: 100%; display: block; }
   word-break: break-word;
 }
 
+.term-translation {
+  font-family: var(--font-body, inherit);
+  font-size: .85rem;
+  font-weight: 600;
+  color: var(--rose-dark, var(--text-muted));
+  margin: -.1rem 0 .3rem;
+}
+.modal-card .term-translation { font-size: .95rem; margin-top: -.2rem; }
+
 .speak-btn {
   width: 32px;
   height: 32px;

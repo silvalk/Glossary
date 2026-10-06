@@ -11,12 +11,13 @@
 
   const modalOverlay = document.getElementById("modalOverlay");
   const modalTerm = document.getElementById("modalTerm");
+  const modalTranslation = document.getElementById("modalTranslation");
   const modalExplanation = document.getElementById("modalExplanation");
   const modalCategoryBadge = document.getElementById("modalCategoryBadge");
   const modalSpeakBtn = document.getElementById("modalSpeakBtn");
   const modalClose = document.getElementById("modalClose");
 
-  let terms = loadTerms();
+  let terms = [];
   let activeCategory = "all";
 
   /* ---------- Filtro de categorias ---------- */
@@ -81,6 +82,7 @@
             </div>
             <button type="button" class="speak-btn" aria-label="Ouvir pronúncia de ${escapeHTML(item.term)}">${iconSVG("speaker")}</button>
           </div>
+          <p class="term-translation">${escapeHTML(item.translation)}</p>
           <span class="category-badge cat-${cat.id}">${escapeHTML(cat.label)}</span>
           <span class="snippet">${escapeHTML(item.explanation)}</span>
           <span class="ler-mais">Ler Mais
@@ -126,6 +128,7 @@
   function openModal(item) {
     const cat = getCategory(item.category);
     modalTerm.textContent = item.term;
+    modalTranslation.textContent = item.translation;
     modalExplanation.textContent = item.explanation;
     modalCategoryBadge.className = `category-badge cat-${cat.id}`;
     modalCategoryBadge.innerHTML = `${iconSVG(cat.icon)}${escapeHTML(cat.label)}`;
@@ -148,6 +151,18 @@
     return div.innerHTML;
   }
 
+  /* Mostra um erro de conexão com a API reaproveitando o visual do
+     "empty-state" que já existia para "nenhum termo encontrado". */
+  function renderApiError(erro) {
+    termGrid.innerHTML = `
+      <div class="empty-state">
+        <div class="petal-mark" aria-hidden="true"><img src="assets/logo.svg" alt=""></div>
+        <p><strong>Não foi possível carregar o glossário.</strong></p>
+        <p>${escapeHTML(erro instanceof Error ? erro.message : String(erro))}</p>
+      </div>`;
+    resultCount.textContent = "";
+  }
+
   /* ---------- Eventos ---------- */
 
   searchInput.addEventListener("input", () => render(applyFilters()));
@@ -167,14 +182,24 @@
     }
   });
 
-  // Mantém o glossário atualizado caso o admin altere dados em outra aba
-  window.addEventListener("storage", (e) => {
-    if (e.key === STORAGE_KEY) {
-      terms = loadTerms();
-      render(applyFilters());
-    }
-  });
+  // Observação: como os termos agora vêm do MySQL (via API) e não mais do
+  // localStorage, a sincronização automática entre abas deixou de fazer
+  // sentido aqui (não existe mais nenhuma chave de termos no navegador).
+  // Uma alteração feita no admin aparece no glossário público ao recarregar
+  // a página — assim como acontece em qualquer site com backend de verdade.
 
-  renderCategoryFilter();
-  render(terms);
+  async function init() {
+    termGrid.innerHTML = `<div class="empty-state"><p>Carregando termos…</p></div>`;
+    try {
+      const [categorias, termosCarregados] = await Promise.all([fetchCategories(), fetchTerms()]);
+      CATEGORIES = categorias;
+      terms = termosCarregados;
+      renderCategoryFilter();
+      render(applyFilters());
+    } catch (erro) {
+      renderApiError(erro);
+    }
+  }
+
+  init();
 })();
